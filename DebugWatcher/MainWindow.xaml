@@ -1,0 +1,14 @@
+﻿<Controls:MetroWindow x:Class="DebugWatcher.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:xaml="clr-namespace:ReactiveUI.Xaml;assembly=ReactiveUI.Xaml"
+        Title="Deerso - Debug Watcher" Height="600" Width="800">
+    <Grid>
+        <xaml:RoutedViewHost Router="{Binding Router}"
+                           HorizontalContentAlignment="Stretch"
+                           VerticalContentAlignment="Stretch"
+                               />
+
+    </Grid>
+</Controls:MetroWindow>
