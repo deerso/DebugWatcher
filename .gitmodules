@@ -1,0 +1,3 @@
+[submodule "Deerso.Logger.Models"]
+	path = Deerso.Logger.Models
+	url = git@github.com:deerso/Deerso.Logger.Models.git
