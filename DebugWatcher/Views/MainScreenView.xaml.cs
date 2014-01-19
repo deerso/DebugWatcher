@@ -26,22 +26,14 @@ namespace DebugWatcher
         public MainScreenView()
         {
             InitializeComponent();
-            this.OneWayBind(ViewModel, x => x.RequestOutputMessages, x => x.RequestsOutputBox.ItemsSource);
+            //this.OneWayBind(ViewModel, x => x.RequestOutputMessages, x => x.RequestsOutputBox.ItemsSource);
             this.OneWayBind(ViewModel, x => x.DebugOutputMessages, x => x.DebugOutputBox.ItemsSource);
             this.OneWayBind(ViewModel, x => x.ExceptionOutputMessages, x => x.ExceptionsOutputBox.ItemsSource);
-            //this.Bind(ViewModel, x => x.ExceptionForeground, x => x.ExceptionsHeader.Foreground);
-            //this.Bind(ViewModel, x => x.RequestsForeground, x => x.RequestsHeader.Foreground);
-            //this.OneWayBind(ViewModel, x => x.DebugForeground, x => x.DebugHeader.Foreground);
-            //this.OneWayBind(ViewModel, x => x.SelectedTabIndex, x => x.ChannelsTabControl.);
-
-            //this.ChannelsTabControl.SelectionChanged += (sender, args) =>
-            //{
-            //    Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, (Action) (() =>
-            //    {
-            //        ViewModel.SelectedTabIndex = ChannelsTabControl.SelectedIndex;
-            //    }));
-            //};
-            
+            this.BindCommand(ViewModel, x => x.ReConnectCommand, x => x.ReConnectButton);
+            this.Bind(ViewModel, x => x.RedisServerAddress, x => x.RedisServerAddress.Text);
+            this.BindCommand(ViewModel, x => x.ProductionRedisAddressCommand, x => x.UseProductionServerAddressButton);
+            this.BindCommand(ViewModel, x => x.StagingRedisAddressCommand, x => x.UseStagingServerAddressButton);
+            this.OneWayBind(ViewModel, x => x.RequestInfoList, x => x.RequestsGrid.ItemsSource);
         }
         
         public static DependencyProperty ViewModelProperty =

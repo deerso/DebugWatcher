@@ -5,12 +5,14 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
+using DebugWatcher.Models;
 using ReactiveUI;
 using System;
 using System.Linq;
 using System.Reactive.Linq;
 using ServiceStack;
 using ServiceStack.Redis;
+using ServiceStack.Text;
 
 namespace DebugWatcher.ViewModels
 {
@@ -19,9 +21,16 @@ namespace DebugWatcher.ViewModels
         IReactiveList<string> RequestOutputMessages { get; set; } 
         IReactiveList<string> DebugOutputMessages { get; set; } 
         IReactiveList<string> ExceptionOutputMessages { get; set; }
+
+        IReactiveList<RequestInfo> RequestInfoList { get; set; } 
         IReactiveCommand AddMessageCommand { get; set; }
+        IReactiveCommand ReConnectCommand { get; set; }
+
+        IReactiveCommand ProductionRedisAddressCommand { get; set; }
+        IReactiveCommand StagingRedisAddressCommand { get; set; }
 
         int SelectedTabIndex { get; set; }
+        string RedisServerAddress { get; set; }
 
         Brush ExceptionForeground { get; set; }
         Brush DebugForeground { get; set; }
@@ -41,6 +50,17 @@ namespace DebugWatcher.ViewModels
         {
             HostScreen = screen;
 
+            var redis = new RedisSubs();
+
+            RequestInfoList = new ReactiveList<RequestInfo>();
+            RequestInfoList.Add(new RequestInfo
+            {
+                IsCrawler = false,
+                RefererUrl = "http://www.google.com",
+                RequestTime = DateTime.Now - TimeSpan.FromDays(1),
+                Url = "http://www.deerso.com",
+                UserAgent = "TestAgent"
+            });
             RequestOutputMessages = new ReactiveList<string>();
             DebugOutputMessages = new ReactiveList<string>();
             ExceptionOutputMessages = new ReactiveList<string>();
@@ -49,7 +69,18 @@ namespace DebugWatcher.ViewModels
             var debugSubject = new Subject<string>();
             var exceptionSubject = new Subject<string>();
 
-            requestSubject.ObserveOnDispatcher().Subscribe(x => RequestOutputMessages.Add(x));
+            requestSubject.ObserveOnDispatcher().Subscribe(x =>
+            {
+                try
+                {
+                    var requestInfo = JsonSerializer.DeserializeFromString<RequestInfo>(x);
+                    RequestInfoList.Add(requestInfo);
+                }
+                catch (Exception)
+                {
+
+                }
+            });
             debugSubject.ObserveOnDispatcher().Subscribe(x => DebugOutputMessages.Add(x));
             exceptionSubject.ObserveOnDispatcher().Subscribe(x => ExceptionOutputMessages.Add(x));
 
@@ -73,76 +104,27 @@ namespace DebugWatcher.ViewModels
                 }
             });
 
-
-
-
-            //137.135.99.146
-            try
+            ReConnectCommand = new ReactiveCommand();
+            ReConnectCommand.ObserveOnDispatcher().Subscribe(x =>
             {
-                using (var redisConsumer = new RedisClient("10.0.1.60"))
-                using (var subscription = redisConsumer.CreateSubscription())
-                {
-                    subscription.OnSubscribe = channel =>
-                    {
-                        var msg = "Subscribed to {0}".FormatWith(channel);
-                        switch (channel)
-                        {
-                            case "DeersoWebDebug":
-                                debugSubject.OnNext(msg);
-                                break;
-                            case "DeersoWebExceptions":
-                                exceptionSubject.OnNext(msg);
-                                break;
-                            case "DeersoWebRequests":
-                                requestSubject.OnNext(msg);
-                                break;
-                        }
-                    };
-                    subscription.OnUnSubscribe = channel =>
-                    {
-                        var msg = "Unsubscribed from {0}".FormatWith(channel);
-                        switch (channel)
-                        {
-                            case "DeersoWebDebug":
-                                debugSubject.OnNext(msg);
-                                break;
-                            case "DeersoWebExceptions":
-                                exceptionSubject.OnNext(msg);
-                                break;
-                            case "DeersoWebRequests":
-                                requestSubject.OnNext(msg);
-                                break;
-                        }
-                    };
+                redis.Disconnect();
+                redis.Connect(RedisServerAddress, debugSubject, exceptionSubject, requestSubject);
+            });
 
-                    subscription.OnMessage = (channel, msg) =>
-                    {
-                        switch (channel)
-                        {
-                            case "DeersoWebDebug":
-                                debugSubject.OnNext(msg);
-                                break;
-                            case "DeersoWebExceptions":
-                                exceptionSubject.OnNext(msg);
-                                break;
-                            case "DeersoWebRequests":
-                                requestSubject.OnNext(msg);
-                                break;
-                        }
-                    };
-                    App.SubScriptionThread = new Thread(() =>
-                    {
-                        subscription.SubscribeToChannels("DeersoWebDebug", "DeersoWebExceptions", "DeersoWebRequests");
-                    });
-                    App.SubScriptionThread.Start();
-                }
-            }
-            catch (Exception x)
+            ProductionRedisAddressCommand = new ReactiveCommand();
+            ProductionRedisAddressCommand.Subscribe(x =>
             {
-                RequestOutputMessages.Add("Error: " + x.Message);
-            }
+                RedisServerAddress = "10.0.1.50";
+            });
+            StagingRedisAddressCommand = new ReactiveCommand();
+            StagingRedisAddressCommand.Subscribe(x =>
+            {
+                RedisServerAddress = "137.135.99.146";
+            });
+
+            RedisServerAddress = "137.135.99.146";
+            redis.Connect(RedisServerAddress, debugSubject, exceptionSubject, requestSubject);
         }
-
 
         public string UrlPathSegment
         {
@@ -176,6 +158,14 @@ namespace DebugWatcher.ViewModels
         }
 
 
+        private string _redisServerAddress;
+
+        public string RedisServerAddress
+        {
+            get { return _redisServerAddress; }
+            set { this.RaiseAndSetIfChanged(ref _redisServerAddress, value); }
+        }
+
         private IReactiveList<string> _debugOutputMessages;
         public IReactiveList<string> DebugOutputMessages
         {
@@ -197,7 +187,20 @@ namespace DebugWatcher.ViewModels
             get { return _requestOutputMessages; } 
             set { this.RaiseAndSetIfChanged(ref _requestOutputMessages, value); }
         }
+
+        private IReactiveList<RequestInfo> _requestInfoList;
+
+        public IReactiveList<RequestInfo> RequestInfoList
+        {
+            get { return _requestInfoList; }
+            set { this.RaiseAndSetIfChanged(ref _requestInfoList, value); }
+        }
+
         public IReactiveCommand AddMessageCommand { get; set; }
+        public IReactiveCommand ReConnectCommand { get; set; }
+
+        public IReactiveCommand ProductionRedisAddressCommand { get; set; }
+        public IReactiveCommand StagingRedisAddressCommand { get; set; }
         public IScreen HostScreen { get; protected set; }
     }
     public enum LiveLogChannel

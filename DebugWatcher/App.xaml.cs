@@ -14,7 +14,7 @@ namespace DebugWatcher
     /// </summary>
     public partial class App : Application
     {
-        public static bool IsShuttingDown = false;
-        public static Thread SubScriptionThread = null;
+        public static Thread SubscriptionThread = null;
+        public static Guid ApplicationId = Guid.NewGuid();
     }
 }

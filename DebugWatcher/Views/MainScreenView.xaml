@@ -16,25 +16,45 @@
 				<VisualState x:Name="ShowOptions">
 					<Storyboard>
 						<DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.X)" Storyboard.TargetName="OptionsPanel">
-							<EasingDoubleKeyFrame KeyTime="0" Value="-311.112"/>
+							<EasingDoubleKeyFrame KeyTime="0" Value="-312.112"/>
 						</DoubleAnimationUsingKeyFrames>
 					</Storyboard>
 				</VisualState>
 				<VisualState x:Name="HideOptions"/>
 			</VisualStateGroup>
 		</VisualStateManager.VisualStateGroups>
-		<Grid.RowDefinitions>
-			<RowDefinition/>
-		</Grid.RowDefinitions>
-		<TabControl x:Name="ChannelsTabControl">
+  <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="4*"/>
+      <ColumnDefinition Width="1*"/>
+  </Grid.ColumnDefinitions>
+		<TabControl Grid.Column="0" x:Name="ChannelsTabControl">
 			<TabItem Header="Requests" x:Name="RequestsHeader">
-				<ListBox Background="White" Foreground="Black" FontFamily="Consolas"  x:Name="RequestsOutputBox" Margin="10">
+				<!--<ListBox Background="White" Foreground="Black" FontFamily="Consolas"  x:Name="RequestsOutputBox" Margin="10">
 					<ListBox.ItemTemplate>
 						<DataTemplate>
 							<TextBlock Foreground="Black" Text="{Binding}"/>
 						</DataTemplate>
 					</ListBox.ItemTemplate>
-				</ListBox>
+				</ListBox>-->
+                <DataGrid Name="RequestsGrid"
+                          AutoGenerateColumns="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Date Requested"
+                                            Width="121"
+                                            Binding="{Binding RequestTime}"/>
+                        <DataGridTextColumn Header="Crawler" 
+                                            Width="76"
+                                            Binding="{Binding IsCrawler}"/>
+                        <DataGridHyperlinkColumn Header="Url"
+                                                 Width="140"
+                                                 Binding="{Binding Url}"/>
+                        <DataGridHyperlinkColumn Header="Referer Url"
+                                            Width="140"
+                                            Binding="{Binding RefererUrl}"/>
+                        <DataGridTextColumn Header="User Agent"
+                                            Binding="{Binding UserAgent}"/>
+                </DataGrid.Columns>
+                </DataGrid>
 			</TabItem>
 			<TabItem Header="Debug" x:Name="DebugHeader">
 				<ListBox Background="White" Foreground="Black" FontFamily="Consolas"  x:Name="DebugOutputBox" Margin="10">
@@ -45,7 +65,7 @@
 					</ListBox.ItemTemplate>
 				</ListBox>
 			</TabItem>
-			<TabItem Header="Exceptions" x:Name="ExceptionsHeader" Foreground="#FFC9C7C7">
+			<TabItem Header="Exceptions" x:Name="ExceptionsHeader">
 				<ListBox Background="White" Foreground="Black" FontFamily="Consolas"  x:Name="ExceptionsOutputBox" Margin="10">
 					<ListBox.ItemTemplate>
 						<DataTemplate>
@@ -54,18 +74,18 @@
 					</ListBox.ItemTemplate>
 				</ListBox>
 			</TabItem>
-			<StackPanel x:Name="ShowOptionsButtonPanel" Margin="634,-34.473,4,547" Orientation="Horizontal" ZIndex="100">
-				<Button x:Name="ShowOptionsButton" Content="" Margin="0" Style="{DynamicResource WhiteBGArrowButton}" Height="35" Width="35" HorizontalAlignment="Left" VerticalAlignment="Top">
-					<i:Interaction.Triggers>
-						<i:EventTrigger EventName="Click">
-							<ei:GoToStateAction StateName="ShowOptions"/>
-						</i:EventTrigger>
-					</i:Interaction.Triggers>
-				</Button>
-				<TextBlock TextWrapping="Wrap" Text="options" Margin="10,0,0,0" FontSize="27" Foreground="#FFC9C7C7"/>
-			</StackPanel>
 		</TabControl>
-		<StackPanel x:Name="OptionsPanel" HorizontalAlignment="Left" Height="600" Margin="811.928,0,-312.375,0" VerticalAlignment="Top" Width="300.447" Background="Black" RenderTransformOrigin="0.5,0.5">
+        <StackPanel Grid.Column="1" VerticalAlignment="Top" x:Name="ShowOptionsButtonPanel" Margin="0,15,10,10" Height="40" Width="140" Orientation="Horizontal">
+            <Button x:Name="ShowOptionsButton" Content="" Margin="0" Style="{DynamicResource WhiteBGArrowButton}" Height="35" Width="35" HorizontalAlignment="Left" VerticalAlignment="Top">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="Click">
+                        <ei:GoToStateAction StateName="ShowOptions"/>
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+            </Button>
+            <TextBlock TextWrapping="Wrap" Text="options" Margin="10,0,0,0" FontSize="27" Background="White" Foreground="#FFC9C7C7"/>
+        </StackPanel>
+        <StackPanel Grid.Column="1" x:Name="OptionsPanel" HorizontalAlignment="Left" Height="600" Margin="180,0,-312.375,0" VerticalAlignment="Top" Width="300.447" Background="Black" RenderTransformOrigin="0.5,0.5">
 			<StackPanel.RenderTransform>
 				<TransformGroup>
 					<ScaleTransform/>
@@ -87,6 +107,22 @@
 					Margin="10,0,0,0"
 					FontSize="27"/>
 			</StackPanel>
+            <Grid Margin="10,25,10,10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="40"/>
+                    <RowDefinition Height="40"/>
+                    <RowDefinition Height="40"/>
+                    <RowDefinition Height="40"/>
+                    <RowDefinition Height="40"/>
+                </Grid.RowDefinitions>
+                <TextBlock Foreground="White" 
+                           Text="Redis Server IP Address"
+                           FontSize="18"/>
+                           <TextBox Name="RedisServerAddress" Grid.Row="1" FontSize="20" Margin="3,3,3,3" Text="10.0.10.60"></TextBox>
+                           <Button Name="UseStagingServerAddressButton" Grid.Row="2"  Margin="3,3,3,3" Content="Staging"></Button>
+                           <Button Name="UseProductionServerAddressButton" Grid.Row="3"  Margin="3,3,3,3" Content="Production"></Button>
+                           <Button Name="ReConnectButton" Grid.Row="4"  Margin="3,3,3,3" Content="Re-Connect"></Button>
+            </Grid>
 		</StackPanel>
      
 
