@@ -3,6 +3,7 @@ using System.CodeDom;
 using System.Collections.Generic;
 using System.Reactive.Subjects;
 using System.Threading;
+using Deerso.Logging.Models;
 using Microsoft.Expression.Interactivity.Media;
 using ServiceStack;
 using ServiceStack.Redis;
@@ -33,6 +34,7 @@ namespace DebugWatcher
             ISubject<string> debugSubject,
             ISubject<string> exceptionSubject,
             ISubject<string> requestSubject,
+            ISubject<string> ordersSubject, 
             ISubject<string> onConnection)
         {
             //137.135.99.146
@@ -58,6 +60,9 @@ namespace DebugWatcher
                             case "DeersoWebRequests":
                                 requestSubject.OnNext(msg);
                                 break;
+                            case "DeersoWebOrders":
+                                ordersSubject.OnNext(msg);
+                                break;
                         }
                     };
                     _redisSubscription.OnUnSubscribe = channel =>
@@ -73,6 +78,9 @@ namespace DebugWatcher
                                 break;
                             case "DeersoWebRequests":
                                 requestSubject.OnNext(msg);
+                                break;
+                            case "DeersoWebOrders":
+                                ordersSubject.OnNext(msg);
                                 break;
                         }
                     };
@@ -94,6 +102,9 @@ namespace DebugWatcher
                                 break;
                             case "DeersoWebRequests":
                                 requestSubject.OnNext(msg);
+                                break;
+                            case "DeersoWebOrders":
+                                ordersSubject.OnNext(msg);
                                 break;
                         }
                     };

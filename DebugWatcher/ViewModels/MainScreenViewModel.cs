@@ -24,6 +24,8 @@ namespace DebugWatcher.ViewModels
         IReactiveList<string> ExceptionOutputMessages { get; set; }
 
         IReactiveList<RequestInfo> RequestInfoList { get; set; } 
+
+        IReactiveList<OrderInfo> OrderInfoList { get; set; } 
         IReactiveCommand AddMessageCommand { get; set; }
         IReactiveCommand ConnectCommand { get; set; }
         IReactiveCommand DisconnectCommand { get; set; }
@@ -32,12 +34,6 @@ namespace DebugWatcher.ViewModels
     }
     public class MainScreenViewModel : ReactiveObject, IMainScreenViewModel
     {
-        private Dictionary<LiveLogChannel, string> ChannelNames = new Dictionary<LiveLogChannel, string>
-        {
-            {LiveLogChannel.Debug, "DeersoWebDebug"},
-            {LiveLogChannel.Exception, "DeersoWebExceptions"},
-            {LiveLogChannel.Requests, "DeersoWebRequests"}
-        };
 
         private int currentIndex = 0;
         public MainScreenViewModel(IScreen screen)
@@ -46,17 +42,32 @@ namespace DebugWatcher.ViewModels
 
             var redis = new DeersoRedisClient();
 
-            RequestInfoList = new ReactiveList<RequestInfo>();
-            RequestInfoList.Add(new RequestInfo
+            RequestInfoList = new ReactiveList<RequestInfo>
             {
-                IsCrawler = false,
-                RefererUrl = "http://www.google.com",
-                RequestTime = DateTime.Now - TimeSpan.FromDays(1),
-                Url = "http://www.deerso.com",
-                UserAgent = "TestAgent",
-                IpAddress = "167.139.13.221",
-                OriginRefererUrl = "http://www.thefind.com/search?q=deerso"
-            });
+                new RequestInfo
+                {
+                    IsCrawler = false,
+                    RefererUrl = "http://www.google.com",
+                    RequestTime = DateTime.Now - TimeSpan.FromDays(1),
+                    Url = "http://www.deerso.com",
+                    UserAgent = "TestAgent",
+                    IpAddress = "167.139.13.221",
+                    OriginRefererUrl = "http://www.thefind.com/search?q=deerso"
+                }
+            };
+
+            OrderInfoList = new ReactiveList<OrderInfo>
+            {
+                new OrderInfo
+                {
+                    IpAddress = "167.139.13.221",
+                    OrderAmount = 176.54m,
+                    OrderNumber = 5171516,
+                    OriginRefererUrl = "http://www.thefind.com/searh?q=deerso",
+                    TimeOrdered = DateTime.Now,
+                    GuestCheckout= true
+                }
+            };
             RequestOutputMessages = new ReactiveList<string>();
             DebugOutputMessages = new ReactiveList<string>();
             ExceptionOutputMessages = new ReactiveList<string>();
@@ -64,6 +75,7 @@ namespace DebugWatcher.ViewModels
             var requestSubject = new Subject<string>();
             var debugSubject = new Subject<string>();
             var exceptionSubject = new Subject<string>();
+            var ordersSubject = new Subject<string>();
 
             requestSubject.ObserveOnDispatcher().Subscribe(x =>
             {
@@ -77,11 +89,24 @@ namespace DebugWatcher.ViewModels
 
                 }
             });
+
+            ordersSubject.ObserveOnDispatcher().Subscribe(x =>
+            {
+                try
+                {
+                    var ordersInfo = JsonSerializer.DeserializeFromString<OrderInfo>(x);
+                    OrderInfoList.Add(ordersInfo);
+                }
+                catch (Exception)
+                {
+                }
+            });
+
             debugSubject.ObserveOnDispatcher().Subscribe(x => DebugOutputMessages.Add(x));
             exceptionSubject.ObserveOnDispatcher().Subscribe(x => ExceptionOutputMessages.Add(x));
 
 
-            InitalizeCommands(new DeersoRedisClient(), debugSubject, exceptionSubject, requestSubject, null);
+            InitalizeCommands(new DeersoRedisClient(), debugSubject, exceptionSubject, requestSubject, ordersSubject);
         }
 
         void InitalizeCommands(DeersoRedisClient deersoRedis, 
@@ -114,6 +139,7 @@ namespace DebugWatcher.ViewModels
                     debugsubject, 
                     exceptionSubject,
                     requestSubject, 
+                    ordersSubject,
                     connectionCallback);
                 LatestStatusMessage = "Connecting to: {0}".FormatWith(Properties.Settings.Default.RedisAddress);
             });
@@ -197,6 +223,13 @@ namespace DebugWatcher.ViewModels
             set { this.RaiseAndSetIfChanged(ref _requestInfoList, value); }
         }
 
+        private IReactiveList<OrderInfo> _orderInfoList;
+        public IReactiveList<OrderInfo> OrderInfoList
+        {
+            get { return _orderInfoList; }
+            set { this.RaiseAndSetIfChanged(ref _orderInfoList, value); }
+        }
+
         public IReactiveCommand AddMessageCommand { get; set; }
         public IReactiveCommand ConnectCommand { get; set; }
         public IReactiveCommand DisconnectCommand { get; set; }
@@ -205,15 +238,4 @@ namespace DebugWatcher.ViewModels
         public IReactiveCommand StagingRedisAddressCommand { get; set; }
         public IScreen HostScreen { get; protected set; }
     }
-    public enum LiveLogChannel
-    {
-        Debug,
-        Exception,
-        Requests,
-    }
-    //public void Run()
-    //{
-
-
-    //}
 }

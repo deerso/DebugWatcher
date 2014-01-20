@@ -33,6 +33,7 @@ namespace DebugWatcher
             this.BindCommand(ViewModel, x => x.DisconnectCommand, x => x.DisconnectButton);
             this.OneWayBind(ViewModel, x => x.RequestInfoList, x => x.RequestsGrid.ItemsSource);
             this.OneWayBind(ViewModel, x => x.LatestStatusMessage, x => x.LatestStatusText.Text);
+            this.OneWayBind(ViewModel, x => x.OrderInfoList, x => x.OrdersGrid.ItemsSource);
         }
         
         public static DependencyProperty ViewModelProperty =

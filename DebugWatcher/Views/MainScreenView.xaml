@@ -42,6 +42,9 @@
                         <DataGridTextColumn Header="Crawler" 
                                             Width="76"
                                             Binding="{Binding IsCrawler}"/>
+                        <DataGridTextColumn Header="Local Request"
+                                            Width="113"
+                                            Binding="{Binding IsLocal}"/>
                         <DataGridHyperlinkColumn Header="Url"
                                                  Width="140"
                                                  Binding="{Binding Url}"/>
@@ -76,7 +79,28 @@
                 </ListBox>
             </TabItem>
             <TabItem Header="Orders">
-                
+                <DataGrid Name="OrdersGrid"
+                          AutoGenerateColumns="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Time Ordered"
+                                            Width="150"
+                                            Binding="{Binding TimeOrdered}"/>
+                        <DataGridTextColumn Header="Guest Checkout" 
+                                            Width="123"
+                                            Binding="{Binding GuestCheckout}"/>
+                        <DataGridTextColumn Header="Order Number"
+                                            Width="113"
+                                            Binding="{Binding OrderNumber}"/>
+                        <DataGridHyperlinkColumn Header="Order Amount ($)"
+                                            Width="141"
+                                            Binding="{Binding OrderAmount}"/>
+                        <DataGridHyperlinkColumn Header="Origin Url"
+                                                 Width="141"
+                                                 Binding="{Binding OriginRefererUrl}"/>
+                        <DataGridTextColumn Header="IP Address"
+                                            Binding="{Binding IpAddress}"/>
+                    </DataGrid.Columns>
+                </DataGrid>
             </TabItem>
         </TabControl>
         <StackPanel Grid.Row="1"
