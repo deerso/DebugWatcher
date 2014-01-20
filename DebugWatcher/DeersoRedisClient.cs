@@ -9,19 +9,16 @@ using ServiceStack.Redis;
 
 namespace DebugWatcher
 {
-    public class RedisSubs
+    public class DeersoRedisClient
     {
         private readonly Func<string, bool> _isUnsubscribeAllMessage; 
         protected string ConnectedIpAddress { get; set; }
-        public RedisSubs()
+        public DeersoRedisClient()
         {
             _isUnsubscribeAllMessage = s =>
             {
-                var messageType = default(MessageType);
-                if (!s.Contains("{0}"))
-                    return false;
-                StringToMessageTypeMap.TryGetValue(s.FormatWith(App.ApplicationId), out messageType);
-                return messageType == MessageType.UnsubscribeFromAll;
+                var unsubscribeFormat = MessageTypeToStringMap[MessageType.UnsubscribeFromAll];
+                return s == unsubscribeFormat.FormatWith(App.ApplicationId);
             };
         }
 
@@ -35,7 +32,8 @@ namespace DebugWatcher
         public void Connect(string serverIpAddress,
             ISubject<string> debugSubject,
             ISubject<string> exceptionSubject,
-            ISubject<string> requestSubject)
+            ISubject<string> requestSubject,
+            ISubject<string> onConnection)
         {
             //137.135.99.146
             try
@@ -51,6 +49,7 @@ namespace DebugWatcher
                         switch (channel)
                         {
                             case "DeersoWebDebug":
+                                onConnection.OnNext("DeersoWebDebug");
                                 debugSubject.OnNext(msg);
                                 break;
                             case "DeersoWebExceptions":
@@ -98,11 +97,22 @@ namespace DebugWatcher
                                 break;
                         }
                     };
-                    App.SubscriptionThread = new Thread(() => _redisSubscription.SubscribeToChannels(
-                        "DeersoWebDebug",
-                        "DeersoWebExceptions",
-                        "DeersoWebRequests",
-                        "DeersoWebOrders"));
+                    App.SubscriptionThread = new Thread(() =>
+                    {
+                        try
+                        {
+                            _redisSubscription.SubscribeToChannels(
+                                "DeersoWebDebug",
+                                "DeersoWebExceptions",
+                                "DeersoWebRequests",
+                                "DeersoWebOrders");
+                        }
+                        catch (RedisException ex)
+                        {
+                             onConnection.OnError(ex);
+                        }
+                        
+                    });
                     App.SubscriptionThread.Start();
                 }
             }
@@ -127,6 +137,7 @@ namespace DebugWatcher
 
         public enum MessageType
         {
+            Normal,
             UnsubscribeFromAll
         }
     }

@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reactive.Subjects;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
-using DebugWatcher.Models;
+using Deerso.Logging.Models;
 using ReactiveUI;
 using System;
 using System.Linq;
@@ -24,17 +25,10 @@ namespace DebugWatcher.ViewModels
 
         IReactiveList<RequestInfo> RequestInfoList { get; set; } 
         IReactiveCommand AddMessageCommand { get; set; }
-        IReactiveCommand ReConnectCommand { get; set; }
+        IReactiveCommand ConnectCommand { get; set; }
+        IReactiveCommand DisconnectCommand { get; set; }
+        string LatestStatusMessage { get; set; }
 
-        IReactiveCommand ProductionRedisAddressCommand { get; set; }
-        IReactiveCommand StagingRedisAddressCommand { get; set; }
-
-        int SelectedTabIndex { get; set; }
-        string RedisServerAddress { get; set; }
-
-        Brush ExceptionForeground { get; set; }
-        Brush DebugForeground { get; set; }
-        Brush RequestsForeground { get; set; }
     }
     public class MainScreenViewModel : ReactiveObject, IMainScreenViewModel
     {
@@ -50,7 +44,7 @@ namespace DebugWatcher.ViewModels
         {
             HostScreen = screen;
 
-            var redis = new RedisSubs();
+            var redis = new DeersoRedisClient();
 
             RequestInfoList = new ReactiveList<RequestInfo>();
             RequestInfoList.Add(new RequestInfo
@@ -59,7 +53,9 @@ namespace DebugWatcher.ViewModels
                 RefererUrl = "http://www.google.com",
                 RequestTime = DateTime.Now - TimeSpan.FromDays(1),
                 Url = "http://www.deerso.com",
-                UserAgent = "TestAgent"
+                UserAgent = "TestAgent",
+                IpAddress = "167.139.13.221",
+                OriginRefererUrl = "http://www.thefind.com/search?q=deerso"
             });
             RequestOutputMessages = new ReactiveList<string>();
             DebugOutputMessages = new ReactiveList<string>();
@@ -84,46 +80,43 @@ namespace DebugWatcher.ViewModels
             debugSubject.ObserveOnDispatcher().Subscribe(x => DebugOutputMessages.Add(x));
             exceptionSubject.ObserveOnDispatcher().Subscribe(x => ExceptionOutputMessages.Add(x));
 
-            ExceptionForeground = new SolidColorBrush(Colors.DimGray);
-            DebugForeground = new SolidColorBrush(Colors.DimGray);
-            RequestsForeground = new SolidColorBrush(Colors.DodgerBlue);
 
-            this.ObservableForProperty(x => x.SelectedTabIndex).Subscribe(x =>
+            InitalizeCommands(new DeersoRedisClient(), debugSubject, exceptionSubject, requestSubject, null);
+        }
+
+        void InitalizeCommands(DeersoRedisClient deersoRedis, 
+            ISubject<string> debugsubject, 
+            ISubject<string> exceptionSubject, 
+            ISubject<string> requestSubject, 
+            ISubject<string> ordersSubject)
+        {
+            DisconnectCommand = new ReactiveCommand();
+            DisconnectCommand.ObserveOnDispatcher().Subscribe(x =>
             {
-                currentIndex = x.Value;
-                switch (currentIndex)
+                deersoRedis.Disconnect();
+                LatestStatusMessage = "Disconnected from Server";
+            });
+
+            ConnectCommand = new ReactiveCommand();
+            ConnectCommand.ObserveOnDispatcher().Subscribe(x =>
+            {
+                var connectionCallback = new Subject<string>();
+                connectionCallback.ObserveOnDispatcher().Subscribe(_ =>
                 {
-                    case 0:
-                        MessageBox.Show(RequestsForeground.ToString());
-                        break;
-                    case 1:
-                        RequestsForeground = new SolidColorBrush(Colors.DeepPink);
-                        break;
-                    case 2:
-                        break;
-                }
+                    LatestStatusMessage = "Successfully Connected and Subscribed";
+                });
+                connectionCallback.Catch<string, RedisException>(ex =>
+                {
+                    LatestStatusMessage = ex.Message;
+                    return Observable.Return("");
+                });
+                deersoRedis.Connect(Properties.Settings.Default.RedisAddress, 
+                    debugsubject, 
+                    exceptionSubject,
+                    requestSubject, 
+                    connectionCallback);
+                LatestStatusMessage = "Connecting to: {0}".FormatWith(Properties.Settings.Default.RedisAddress);
             });
-
-            ReConnectCommand = new ReactiveCommand();
-            ReConnectCommand.ObserveOnDispatcher().Subscribe(x =>
-            {
-                redis.Disconnect();
-                redis.Connect(RedisServerAddress, debugSubject, exceptionSubject, requestSubject);
-            });
-
-            ProductionRedisAddressCommand = new ReactiveCommand();
-            ProductionRedisAddressCommand.Subscribe(x =>
-            {
-                RedisServerAddress = "10.0.1.50";
-            });
-            StagingRedisAddressCommand = new ReactiveCommand();
-            StagingRedisAddressCommand.Subscribe(x =>
-            {
-                RedisServerAddress = "137.135.99.146";
-            });
-
-            RedisServerAddress = "137.135.99.146";
-            redis.Connect(RedisServerAddress, debugSubject, exceptionSubject, requestSubject);
         }
 
         public string UrlPathSegment
@@ -181,6 +174,14 @@ namespace DebugWatcher.ViewModels
             set { this.RaiseAndSetIfChanged(ref _exceptionOutputMessages, value); }
         }
 
+        private string _latestStatusMessage;
+
+        public string LatestStatusMessage
+        {
+            get { return _latestStatusMessage; }
+            set { this.RaiseAndSetIfChanged(ref _latestStatusMessage, value); }
+        }
+
         private IReactiveList<string> _requestOutputMessages; 
         public IReactiveList<string> RequestOutputMessages
         {
@@ -197,7 +198,8 @@ namespace DebugWatcher.ViewModels
         }
 
         public IReactiveCommand AddMessageCommand { get; set; }
-        public IReactiveCommand ReConnectCommand { get; set; }
+        public IReactiveCommand ConnectCommand { get; set; }
+        public IReactiveCommand DisconnectCommand { get; set; }
 
         public IReactiveCommand ProductionRedisAddressCommand { get; set; }
         public IReactiveCommand StagingRedisAddressCommand { get; set; }

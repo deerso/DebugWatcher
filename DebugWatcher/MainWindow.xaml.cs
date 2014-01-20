@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -16,6 +17,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using DebugWatcher.ViewModels;
+using Microsoft.Expression.Interactivity.Core;
 using ServiceStack;
 using ServiceStack.Redis;
 
@@ -41,6 +43,25 @@ namespace DebugWatcher
             Environment.Exit(0);
         }
 
-    
+        private void ShowOptionsStateButton(object sender, RoutedEventArgs e)
+        {
+            ExtendedVisualStateManager.GoToElementState(this.MainContentGrid as FrameworkElement, "ShowOptions", true);
+        }
+
+        private void UseStagingServerAddressButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            DebugWatcher.Properties.Settings.Default.RedisAddress = "137.135.99.146";
+        }
+
+        private void UseProductionServerAddressButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            Properties.Settings.Default.RedisAddress = "10.0.1.50";
+        }
+
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            Properties.Settings.Default.Save();
+            base.OnClosing(e);
+        }
     }
 }

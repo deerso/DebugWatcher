@@ -29,11 +29,10 @@ namespace DebugWatcher
             //this.OneWayBind(ViewModel, x => x.RequestOutputMessages, x => x.RequestsOutputBox.ItemsSource);
             this.OneWayBind(ViewModel, x => x.DebugOutputMessages, x => x.DebugOutputBox.ItemsSource);
             this.OneWayBind(ViewModel, x => x.ExceptionOutputMessages, x => x.ExceptionsOutputBox.ItemsSource);
-            this.BindCommand(ViewModel, x => x.ReConnectCommand, x => x.ReConnectButton);
-            this.Bind(ViewModel, x => x.RedisServerAddress, x => x.RedisServerAddress.Text);
-            this.BindCommand(ViewModel, x => x.ProductionRedisAddressCommand, x => x.UseProductionServerAddressButton);
-            this.BindCommand(ViewModel, x => x.StagingRedisAddressCommand, x => x.UseStagingServerAddressButton);
+            this.BindCommand(ViewModel, x => x.ConnectCommand, x => x.ConnectButton);
+            this.BindCommand(ViewModel, x => x.DisconnectCommand, x => x.DisconnectButton);
             this.OneWayBind(ViewModel, x => x.RequestInfoList, x => x.RequestsGrid.ItemsSource);
+            this.OneWayBind(ViewModel, x => x.LatestStatusMessage, x => x.LatestStatusText.Text);
         }
         
         public static DependencyProperty ViewModelProperty =

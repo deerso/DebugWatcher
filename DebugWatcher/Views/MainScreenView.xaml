@@ -6,30 +6,27 @@
              xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity" xmlns:ei="http://schemas.microsoft.com/expression/2010/interactions" x:Class="DebugWatcher.MainScreenView" 
              mc:Ignorable="d" 
              Background="White"
-             d:DesignHeight="600" d:DesignWidth="800">
-	<Grid>
-		<VisualStateManager.VisualStateGroups>
-			<VisualStateGroup x:Name="HideShowOptionsPanel">
-				<VisualStateGroup.Transitions>
-					<VisualTransition GeneratedDuration="0:0:0.3"/>
-				</VisualStateGroup.Transitions>
-				<VisualState x:Name="ShowOptions">
-					<Storyboard>
-						<DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.X)" Storyboard.TargetName="OptionsPanel">
-							<EasingDoubleKeyFrame KeyTime="0" Value="-312.112"/>
-						</DoubleAnimationUsingKeyFrames>
-					</Storyboard>
-				</VisualState>
-				<VisualState x:Name="HideOptions"/>
-			</VisualStateGroup>
-		</VisualStateManager.VisualStateGroups>
-  <Grid.ColumnDefinitions>
-      <ColumnDefinition Width="4*"/>
-      <ColumnDefinition Width="1*"/>
-  </Grid.ColumnDefinitions>
-		<TabControl Grid.Column="0" x:Name="ChannelsTabControl">
-			<TabItem Header="Requests" x:Name="RequestsHeader">
-				<!--<ListBox Background="White" Foreground="Black" FontFamily="Consolas"  x:Name="RequestsOutputBox" Margin="10">
+             d:DesignHeight="600" d:DesignWidth="1000">
+    <Grid>
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="HideShowOptionsPanel">
+                <VisualStateGroup.Transitions>
+                    <VisualTransition GeneratedDuration="0:0:0.3"/>
+                </VisualStateGroup.Transitions>
+                <VisualState x:Name="ShowOptions"/>
+                <VisualState x:Name="HideOptions"/>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="4*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="45"/>
+        </Grid.RowDefinitions>
+        <TabControl Grid.Column="0" x:Name="ChannelsTabControl">
+            <TabItem Header="Requests" x:Name="RequestsHeader">
+                <!--<ListBox Background="White" Foreground="Black" FontFamily="Consolas"  x:Name="RequestsOutputBox" Margin="10">
 					<ListBox.ItemTemplate>
 						<DataTemplate>
 							<TextBlock Foreground="Black" Text="{Binding}"/>
@@ -53,78 +50,52 @@
                                             Binding="{Binding RefererUrl}"/>
                         <DataGridTextColumn Header="User Agent"
                                             Binding="{Binding UserAgent}"/>
-                </DataGrid.Columns>
+                        <DataGridTextColumn Header="IP Address"
+                                            Binding="{Binding IpAddress}"/>
+                        <DataGridHyperlinkColumn Header="Origin Referer"
+                                                 Binding="{Binding OriginRefererUrl}"/>
+                    </DataGrid.Columns>
                 </DataGrid>
-			</TabItem>
-			<TabItem Header="Debug" x:Name="DebugHeader">
-				<ListBox Background="White" Foreground="Black" FontFamily="Consolas"  x:Name="DebugOutputBox" Margin="10">
-					<ListBox.ItemTemplate>
-						<DataTemplate>
-							<TextBlock Foreground="Black" Text="{Binding}"/>
-						</DataTemplate>
-					</ListBox.ItemTemplate>
-				</ListBox>
-			</TabItem>
-			<TabItem Header="Exceptions" x:Name="ExceptionsHeader">
-				<ListBox Background="White" Foreground="Black" FontFamily="Consolas"  x:Name="ExceptionsOutputBox" Margin="10">
-					<ListBox.ItemTemplate>
-						<DataTemplate>
-							<TextBlock Foreground="Black" Text="{Binding}"/>
-						</DataTemplate>
-					</ListBox.ItemTemplate>
-				</ListBox>
-			</TabItem>
-		</TabControl>
-        <StackPanel Grid.Column="1" VerticalAlignment="Top" x:Name="ShowOptionsButtonPanel" Margin="0,15,10,10" Height="40" Width="140" Orientation="Horizontal">
-            <Button x:Name="ShowOptionsButton" Content="" Margin="0" Style="{DynamicResource WhiteBGArrowButton}" Height="35" Width="35" HorizontalAlignment="Left" VerticalAlignment="Top">
-                <i:Interaction.Triggers>
-                    <i:EventTrigger EventName="Click">
-                        <ei:GoToStateAction StateName="ShowOptions"/>
-                    </i:EventTrigger>
-                </i:Interaction.Triggers>
-            </Button>
-            <TextBlock TextWrapping="Wrap" Text="options" Margin="10,0,0,0" FontSize="27" Background="White" Foreground="#FFC9C7C7"/>
-        </StackPanel>
-        <StackPanel Grid.Column="1" x:Name="OptionsPanel" HorizontalAlignment="Left" Height="600" Margin="180,0,-312.375,0" VerticalAlignment="Top" Width="300.447" Background="Black" RenderTransformOrigin="0.5,0.5">
-			<StackPanel.RenderTransform>
-				<TransformGroup>
-					<ScaleTransform/>
-					<SkewTransform/>
-					<RotateTransform/>
-					<TranslateTransform/>
-				</TransformGroup>
-			</StackPanel.RenderTransform>
-			<StackPanel x:Name="HideOptionsButtonPanel" Orientation="Horizontal" Margin="25,12,0,0">
-				<Button Content="" HorizontalAlignment="Left" Height="35" Style="{DynamicResource ArrowButtonStyle}" VerticalAlignment="Top" Width="35">
-					<i:Interaction.Triggers>
-						<i:EventTrigger EventName="Click">
-							<ei:GoToStateAction StateName="HideOptions"/>
-						</i:EventTrigger>
-					</i:Interaction.Triggers>
-				</Button>
-				<TextBlock Text="options"
-					Foreground="Gainsboro"
-					Margin="10,0,0,0"
-					FontSize="27"/>
-			</StackPanel>
-            <Grid Margin="10,25,10,10">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="40"/>
-                    <RowDefinition Height="40"/>
-                    <RowDefinition Height="40"/>
-                    <RowDefinition Height="40"/>
-                    <RowDefinition Height="40"/>
-                </Grid.RowDefinitions>
-                <TextBlock Foreground="White" 
-                           Text="Redis Server IP Address"
-                           FontSize="18"/>
-                           <TextBox Name="RedisServerAddress" Grid.Row="1" FontSize="20" Margin="3,3,3,3" Text="10.0.10.60"></TextBox>
-                           <Button Name="UseStagingServerAddressButton" Grid.Row="2"  Margin="3,3,3,3" Content="Staging"></Button>
-                           <Button Name="UseProductionServerAddressButton" Grid.Row="3"  Margin="3,3,3,3" Content="Production"></Button>
-                           <Button Name="ReConnectButton" Grid.Row="4"  Margin="3,3,3,3" Content="Re-Connect"></Button>
-            </Grid>
-		</StackPanel>
-     
+            </TabItem>
+            <TabItem Header="Debug" x:Name="DebugHeader">
+                <ListBox Background="White" Foreground="Black" FontFamily="Consolas"  x:Name="DebugOutputBox" Margin="10">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Foreground="Black" Text="{Binding}"/>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </TabItem>
+            <TabItem Header="Exceptions" x:Name="ExceptionsHeader">
+                <ListBox Background="White" Foreground="Black" FontFamily="Consolas"  x:Name="ExceptionsOutputBox" Margin="10">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Foreground="Black" Text="{Binding}"/>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </TabItem>
+            <TabItem Header="Orders">
+                
+            </TabItem>
+        </TabControl>
+        <StackPanel Grid.Row="1"
+                    Orientation="Horizontal">
+            <Button Content="Connect"
+                    Name="ConnectButton" 
+                    Width="200" 
+                    Margin="3,3,3,3"/>
+            <Button Content="Disconnect"
+                    Name="DisconnectButton"
+                    Width="200"
+                    Margin="10,3,3,3"/>
 
-	</Grid>
+            <TextBlock Name="LatestStatusText"
+                       Text="Idle"
+                       VerticalAlignment="Center"
+                       FontSize="18"
+                       Margin="100,0,0,0"
+                       HorizontalAlignment="Right"/>
+        </StackPanel>
+    </Grid>
 </UserControl>
