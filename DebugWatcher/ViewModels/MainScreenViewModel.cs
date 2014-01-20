@@ -22,9 +22,7 @@ namespace DebugWatcher.ViewModels
         IReactiveList<string> RequestOutputMessages { get; set; } 
         IReactiveList<string> DebugOutputMessages { get; set; } 
         IReactiveList<string> ExceptionOutputMessages { get; set; }
-
         IReactiveList<RequestInfo> RequestInfoList { get; set; } 
-
         IReactiveList<OrderInfo> OrderInfoList { get; set; } 
         IReactiveCommand AddMessageCommand { get; set; }
         IReactiveCommand ConnectCommand { get; set; }
@@ -42,32 +40,10 @@ namespace DebugWatcher.ViewModels
 
             var redis = new DeersoRedisClient();
 
-            RequestInfoList = new ReactiveList<RequestInfo>
-            {
-                new RequestInfo
-                {
-                    IsCrawler = false,
-                    RefererUrl = "http://www.google.com",
-                    RequestTime = DateTime.Now - TimeSpan.FromDays(1),
-                    Url = "http://www.deerso.com",
-                    UserAgent = "TestAgent",
-                    IpAddress = "167.139.13.221",
-                    OriginRefererUrl = "http://www.thefind.com/search?q=deerso"
-                }
-            };
+            RequestInfoList = new ReactiveList<RequestInfo>();
 
-            OrderInfoList = new ReactiveList<OrderInfo>
-            {
-                new OrderInfo
-                {
-                    IpAddress = "167.139.13.221",
-                    OrderAmount = 176.54m,
-                    OrderNumber = 5171516,
-                    OriginRefererUrl = "http://www.thefind.com/searh?q=deerso",
-                    TimeOrdered = DateTime.Now,
-                    GuestCheckout= true
-                }
-            };
+            OrderInfoList = new ReactiveList<OrderInfo>();
+
             RequestOutputMessages = new ReactiveList<string>();
             DebugOutputMessages = new ReactiveList<string>();
             ExceptionOutputMessages = new ReactiveList<string>();

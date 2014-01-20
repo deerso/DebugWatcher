@@ -38,7 +38,7 @@ namespace DebugWatcher
 
         private void UseProductionServerAddressButton_OnClick(object sender, RoutedEventArgs e)
         {
-            Properties.Settings.Default.RedisAddress = "10.0.1.50";
+            Properties.Settings.Default.RedisAddress = "10.0.1.60";
         }
 
         protected override void OnClosing(CancelEventArgs e)
