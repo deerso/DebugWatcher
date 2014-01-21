@@ -1,18 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Windows.Threading;
 using DebugWatcher.ViewModels;
 using ReactiveUI;
 
@@ -34,6 +21,9 @@ namespace DebugWatcher
             this.OneWayBind(ViewModel, x => x.RequestInfoList, x => x.RequestsGrid.ItemsSource);
             this.OneWayBind(ViewModel, x => x.LatestStatusMessage, x => x.LatestStatusText.Text);
             this.OneWayBind(ViewModel, x => x.OrderInfoList, x => x.OrdersGrid.ItemsSource);
+            this.Bind(ViewModel, x => x.CrawlersFilter, x => x.ShowCrawlers.IsChecked);
+            this.Bind(ViewModel, x => x.RootRequestsFilter, x => x.OnlyRootRequests.IsChecked);
+            this.BindCommand(ViewModel, x => x.ClearFiltersCommand, x => x.ClearFiltersButton);
         }
         
         public static DependencyProperty ViewModelProperty =

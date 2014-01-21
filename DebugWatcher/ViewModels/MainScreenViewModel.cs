@@ -27,19 +27,38 @@ namespace DebugWatcher.ViewModels
         IReactiveCommand AddMessageCommand { get; set; }
         IReactiveCommand ConnectCommand { get; set; }
         IReactiveCommand DisconnectCommand { get; set; }
+        IReactiveCommand ClearFiltersCommand { get; set; }
         string LatestStatusMessage { get; set; }
+        IReactiveList<RequestInfo> AllRequests { get; set; } 
+        bool? CrawlersFilter { get; set; }
+        bool? RootRequestsFilter { get; set; }
 
     }
     public class MainScreenViewModel : ReactiveObject, IMainScreenViewModel
     {
 
         private int currentIndex = 0;
+        private Func<RequestInfo, bool> _crawlerPredicate = null;
+        private Func<RequestInfo, bool> _rootRequestPredicate = null;
+
+        private void SetRequstInfo()
+        {
+            IEnumerable<RequestInfo> requests = AllRequests;
+
+            if (_crawlerPredicate != null)
+                requests = requests.Where(_crawlerPredicate);
+
+            if (_rootRequestPredicate != null)
+                requests = requests.Where(_rootRequestPredicate);
+
+            RequestInfoList = new ReactiveList<RequestInfo>(requests);
+        }
+
         public MainScreenViewModel(IScreen screen)
         {
             HostScreen = screen;
 
-            var redis = new DeersoRedisClient();
-
+            AllRequests = new ReactiveList<RequestInfo>();
             RequestInfoList = new ReactiveList<RequestInfo>();
 
             OrderInfoList = new ReactiveList<OrderInfo>();
@@ -53,12 +72,35 @@ namespace DebugWatcher.ViewModels
             var exceptionSubject = new Subject<string>();
             var ordersSubject = new Subject<string>();
 
+ 
+            this.ObservableForProperty(x => x.CrawlersFilter).ObserveOnDispatcher().Subscribe(x =>
+            {
+                if (x.Value == null)
+                    _crawlerPredicate = null;
+                else if (x.Value.Value)
+                    _crawlerPredicate = r => r.IsCrawler;
+                else
+                    _crawlerPredicate = r => !r.IsCrawler;
+                SetRequstInfo();
+            });
+            this.ObservableForProperty(x => x.RootRequestsFilter).ObserveOnDispatcher().Subscribe(x =>
+            {
+                if (x.Value == null)
+                    _rootRequestPredicate = null;
+                else if (x.Value.Value)
+                    _rootRequestPredicate = r => r.IsLocal;
+                else
+                    _rootRequestPredicate = r => !r.IsLocal;
+                SetRequstInfo();
+            });
+
             requestSubject.ObserveOnDispatcher().Subscribe(x =>
             {
                 try
                 {
                     var requestInfo = JsonSerializer.DeserializeFromString<RequestInfo>(x);
-                    RequestInfoList.Add(requestInfo);
+                    AllRequests.Add(requestInfo);
+                    SetRequstInfo();
                 }
                 catch (Exception)
                 {
@@ -84,6 +126,7 @@ namespace DebugWatcher.ViewModels
 
             InitalizeCommands(new DeersoRedisClient(), debugSubject, exceptionSubject, requestSubject, ordersSubject);
         }
+
 
         void InitalizeCommands(DeersoRedisClient deersoRedis, 
             ISubject<string> debugsubject, 
@@ -119,6 +162,15 @@ namespace DebugWatcher.ViewModels
                     connectionCallback);
                 LatestStatusMessage = "Connecting to: {0}".FormatWith(Properties.Settings.Default.RedisAddress);
             });
+
+            ClearFiltersCommand = new ReactiveCommand();
+            ClearFiltersCommand.Subscribe(x =>
+            {
+                _rootRequestPredicate = null;
+                _crawlerPredicate = null;
+                CrawlersFilter = null;
+                RootRequestsFilter = null;
+            });
         }
 
         public string UrlPathSegment
@@ -126,32 +178,7 @@ namespace DebugWatcher.ViewModels
             get { return "MainScreen"; }
         }
 
-        private int _selectedTabIndex;
-
-        public int SelectedTabIndex
-        {
-            get { return _selectedTabIndex; }
-            set { this.RaiseAndSetIfChanged(ref _selectedTabIndex, value); }
-        }
-        private Brush _exceptionForeground;
-        public Brush ExceptionForeground
-        {
-            get { return _exceptionForeground; }
-            set { this.RaiseAndSetIfChanged(ref _exceptionForeground, value); }
-        }
-        private Brush _debugForeground;
-        public Brush DebugForeground
-        {
-            get { return _debugForeground; }
-            set { this.RaiseAndSetIfChanged(ref _debugForeground, value); }
-        }
-        private Brush _requestsForeground;
-        public Brush RequestsForeground
-        {
-            get { return _requestsForeground; }
-            set { this.RaiseAndSetIfChanged(ref _requestsForeground, value); }
-        }
-
+       
 
         private string _redisServerAddress;
 
@@ -166,8 +193,15 @@ namespace DebugWatcher.ViewModels
         {
             get { return _debugOutputMessages; }
             set { this.RaiseAndSetIfChanged(ref _debugOutputMessages, value); }
-        } 
+        }
 
+        private IReactiveList<RequestInfo> _allRequests;
+
+        public IReactiveList<RequestInfo> AllRequests
+        {
+            get { return _allRequests; }
+            set { this.RaiseAndSetIfChanged(ref _allRequests, value); }
+        }
         private IReactiveList<string> _exceptionOutputMessages;
 
         public IReactiveList<string> ExceptionOutputMessages
@@ -176,8 +210,19 @@ namespace DebugWatcher.ViewModels
             set { this.RaiseAndSetIfChanged(ref _exceptionOutputMessages, value); }
         }
 
+        private bool? _rootRequestsFilter;
+        public bool? RootRequestsFilter
+        {
+            get { return _rootRequestsFilter; }
+            set { this.RaiseAndSetIfChanged(ref _rootRequestsFilter, value); }
+        }
+        private bool? _crawlersFilter;
+        public bool? CrawlersFilter
+        {
+            get { return _crawlersFilter; }
+            set { this.RaiseAndSetIfChanged(ref _crawlersFilter, value); }
+        }
         private string _latestStatusMessage;
-
         public string LatestStatusMessage
         {
             get { return _latestStatusMessage; }
@@ -206,6 +251,7 @@ namespace DebugWatcher.ViewModels
             set { this.RaiseAndSetIfChanged(ref _orderInfoList, value); }
         }
 
+        public IReactiveCommand ClearFiltersCommand { get; set; }
         public IReactiveCommand AddMessageCommand { get; set; }
         public IReactiveCommand ConnectCommand { get; set; }
         public IReactiveCommand DisconnectCommand { get; set; }

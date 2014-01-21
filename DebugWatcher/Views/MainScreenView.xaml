@@ -26,15 +26,26 @@
         </Grid.RowDefinitions>
         <TabControl Grid.Column="0" x:Name="ChannelsTabControl">
             <TabItem Header="Requests" x:Name="RequestsHeader">
-                <!--<ListBox Background="White" Foreground="Black" FontFamily="Consolas"  x:Name="RequestsOutputBox" Margin="10">
-					<ListBox.ItemTemplate>
-						<DataTemplate>
-							<TextBlock Foreground="Black" Text="{Binding}"/>
-						</DataTemplate>
-					</ListBox.ItemTemplate>
-				</ListBox>-->
+                <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="80"/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <StackPanel>
+                    <CheckBox Name="ShowCrawlers"
+                              IsChecked="True"
+                              Content="Show Crawlers"/>
+                    <CheckBox Name="OnlyRootRequests"
+                              IsChecked="False"
+                              Content="Only Root Requests"/>
+                              <Button Name="ClearFiltersButton"
+                                      Content="Clear Filters"
+                                      Width="200"
+                                      HorizontalAlignment="Left"/>
+                </StackPanel>
                 <DataGrid Name="RequestsGrid"
-                          AutoGenerateColumns="False">
+                          AutoGenerateColumns="False"
+                          Grid.Row="1">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Date Requested"
                                             Width="121"
@@ -59,6 +70,7 @@
                                                  Binding="{Binding OriginRefererUrl}"/>
                     </DataGrid.Columns>
                 </DataGrid>
+            </Grid>
             </TabItem>
             <TabItem Header="Debug" x:Name="DebugHeader">
                 <ListBox Background="White" Foreground="Black" FontFamily="Consolas"  x:Name="DebugOutputBox" Margin="10">
